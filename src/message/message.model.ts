@@ -1,8 +1,8 @@
-export interface Message {
+export type Message = {
   id: string;
-  chatId: any;
+  chatId: string;
   userId: string;
-  text: any;
+  text: string;
   createdAt: Date;
-}
+};
 

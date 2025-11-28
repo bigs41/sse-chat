@@ -3,19 +3,23 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Observable } from 'rxjs';
 import { Message } from './message.model';
 import { CreateMessageDto } from './dto/create-message.dto';
+import { PrismaService } from 'src/prisma.service';
 
 @Injectable()
 export class MessageService {
-  constructor(private readonly eventEmitter: EventEmitter2) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly eventEmitter: EventEmitter2,
+  ) {}
 
-  createMessage(dto: CreateMessageDto, chatId: string): Message {
-    const message: Message = {
-      id: crypto.randomUUID(),
-      chatId: chatId,
-      userId: dto.userId,
-      text: dto.text,
-      createdAt: new Date(),
-    };
+  async createMessage(dto: CreateMessageDto, chatId: string): Promise<Message> {
+    const message = await this.prisma['messages'].create({
+      data: {
+        chatId,
+        userId: dto.userId,
+        text: dto.text,
+      },
+    });
 
     // ส่ง event
     this.eventEmitter.emit('messageCreated', message);
