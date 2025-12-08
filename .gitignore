@@ -25,9 +25,6 @@ yarn-error.log
 # Platform specific
 .DS_Store
 
-# Docker
-.dockerignore
-dockerfile
 
 # Firebase
 serviceAccountKey.json
