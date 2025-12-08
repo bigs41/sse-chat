@@ -12,27 +12,29 @@ interface MessageEvent {
 export class ChatController {
   constructor(private readonly messageService: MessageService) {}
 
-  @Sse(':chatId/messages')
-  streamMessages(@Param('chatId') chatId: string): Observable<MessageEvent> {
-    
-    return this.messageService.getMessageStream(chatId).pipe(
+  @Sse(':roomId/messages')
+  streamMessages(
+    @Param('roomId') roomId: string,
+  ): Observable<MessageEvent> {
+    return this.messageService.getMessageStream(roomId).pipe(
       map((message) => ({
-        data: {
+        data: JSON.stringify({
           id: message.id,
           userId: message.userId,
           text: message.text,
+          roomId: message.roomId,
           createdAt: message.createdAt,
-        },
+        }),
       })),
     );
   }
 
-  @Post(':chatId/messages')
+  @Post(':roomId/messages')
   createMessage(
-    @Param('chatId') chatId: string,
+    @Param('roomId') roomId: string,
     @Body() createMessageDto: CreateMessageDto,
   ) {
-    return this.messageService.createMessage(createMessageDto, chatId);
+    return this.messageService.createMessage(createMessageDto, roomId);
   }
 }
 

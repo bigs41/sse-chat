@@ -7,35 +7,102 @@
 generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["multiSchema"]
-  output          = "../node_modules/@prisma/client/.prisma/client"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  schemas  = ["service_chat"]
+  schemas  = ["service_chat", "service_user"]
+}
+
+model room {
+  id        String   @id @default(uuid())
+  name      String
+  serverId  String?
+  type      String
+  description String?
+  avatar String?
+  isPublic Boolean @default(false)
+  isActive Boolean @default(true)
+  isDeleted Boolean @default(false)
+  isArchived Boolean @default(false)
+  isPinned Boolean @default(false)
+  isLocked Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  messages  messages[]
+  roomUsers room_users[]
+  events    room_events[]
+  server    chat_servers?  @relation(fields: [serverId], references: [id], onDelete: SetNull)
+
+  @@schema("service_chat")
 }
 
 model messages {
   id        String   @id @default(uuid())
-  chatId    String
   userId    String
+  roomId    String?
   text      String
   createdAt DateTime @default(now())
-  user users @relation(fields: [userId], references: [id])
+  user      users    @relation(fields: [userId], references: [id])
+  room      room?    @relation(fields: [roomId], references: [id])
 
   @@schema("service_chat")
 }
 
 
-model users {
+
+model chat_servers {
   id        String   @id @default(uuid())
-  username      String
-  email     String   @unique
-  password  String
-  avatar    String?
-  employeeId String?
+  name      String
+  url       String?
+  isPublic Boolean @default(false)
+  isActive Boolean @default(true)
+  isDeleted Boolean @default(false)
+  isArchived Boolean @default(false)
+  isPinned Boolean @default(false)
+  isLocked Boolean @default(false)
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  rooms     room[]
+
+  @@schema("service_chat")
+}
+
+model room_events {
+  id        String   @id @default(uuid())
+  roomId    String
+  eventId   String   // Matrix event ID
+  createdAt DateTime @default(now())
+  room      room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@schema("service_chat")
+}
+
+model room_users {
+  id        String   @id @default(uuid())
+  roomId    String
+  userId    String
+  createdAt DateTime @default(now())
+  joinedAt  DateTime @default(now())
+  room      room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user      users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([roomId, userId])
+  @@schema("service_chat")
+}
+
+
+model users {
+  id         String        @id @default(uuid())
+  username   String
+  email      String        @unique
+  password   String
+  avatar     String?
+  employeeId String?
+  createdAt  DateTime      @default(now())
+  messages   messages[]
+  roomUsers  room_users[]
 
   @@schema("service_user")
 }

@@ -1,6 +1,6 @@
 export type Message = {
   id: string;
-  chatId: string;
+  roomId?: string;
   userId: string;
   text: string;
   createdAt: Date;
